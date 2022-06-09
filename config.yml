@@ -1,0 +1,45 @@
+system:
+  PROXY: #127.0.0.1:8080
+  REQUEST_RETRIES: 5
+  ONCETIME_THREAD_POOL_SIZE: 100
+  THREAD_POOL_SIZE: 10
+  TRYAGAIN_TIMES: 3
+  USERAGENT: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Safari/537.36
+  LFLAG: '$<'
+  RFLAG: '>$'
+  SSL_VERIFY: FALSE
+
+ocr:
+  CAPTCHA_REGEX: '.*(\w{4})'
+  CAPTCHA_REGEX_GETVALUE_INDEX: 1
+
+target:
+  CAPTCHA: captcha.txt
+  CAPTCHA_DATATYPE: RAW # RAW BASE64 CUSTOM
+  CAPTCHA_CUSTOM_GETFLAG: 'image"\:"(.*?)"'
+  BLAST: blast.txt
+  CAPTCHA_INDEX: 3 # start at 1
+  WORDDICT_LIST:
+    - /Users/AbelChe/SecTools/worddicts/fuzzDicts/userNameDict/top500.txt
+    - /Users/AbelChe/SecTools/worddicts/Blasting_dictionary/top100password.txt
+  SSL: True
+  CAPTCHA_ERROR_FLAG:
+    - 验证码错误
+    - 请输入正确验证码
+    - 验证码异常
+  CAPTCHA_ERROR_CODE: 
+    - 500
+    - 502
+    - 403
+  LOGIN_ERROR_FLAG:
+    - 用户名.?密码错误
+    - 登录信息不正确
+    - 验证失败
+  LOGIN_ERROR_CODE:
+    -
+  LOGIN_SUCCESS_FLAG:
+    - 登录成功
+  LOGIN_SUCCESS_CODE: 
+    - 200
+    - 302
+    - 301

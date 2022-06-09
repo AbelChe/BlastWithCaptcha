@@ -1,0 +1,5 @@
+requests_toolbelt==0.9.1
+requests==2.24.0
+ddddocr==1.4.3
+Pillow==9.1.1
+PyYAML==6.0
