@@ -153,6 +153,14 @@ python BlastWithCaptcha.py
 
 ![image-20220609101916330](Readme_resource/image-20220609101916330.png)
 
+
+
+## TODO
+
+- [ ] 插件（类似burp爆破的payload processing）
+- [ ] 带有id的验证码
+- [ ] GUI
+
 ## 使用的项目
 
 - [https://github.com/sml2h3/ddddocr](https://github.com/sml2h3/ddddocr)
