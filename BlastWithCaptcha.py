@@ -1,5 +1,5 @@
 import sys
-print('Please use python version >=3.7') if sys.version_info.major < 3 or sys.version_info.minor < 7 else "PASS"
+print('Please use python version >=3.6') if sys.version_info.major < 3 or sys.version_info.minor < 6 else "PASS"
 
 import base64
 import copy

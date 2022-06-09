@@ -5,7 +5,7 @@ from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 from log import Logging
 
-print('Please use python version >=3.7') if sys.version_info.major < 3 or sys.version_info.minor < 7 else "PASS"
+print('Please use python version >=3.6') if sys.version_info.major < 3 or sys.version_info.minor < 6 else "PASS"
 
 
 log = Logging.getLogger(__name__)
