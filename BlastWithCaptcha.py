@@ -200,7 +200,8 @@ class CaptchaKiller:
         try:
             c = self._getCaptcha()
             if not c:
-                return False
+                print(f'Captcha error... Try again...')
+                self.doRequest(params, againflag)
             _params = params
             params = list(params)
             params.insert(CAPTCHA_INDEX, c)
@@ -226,7 +227,7 @@ class CaptchaKiller:
             elif state == -1:
                 print(f'Try Again {params} captcha: {c}')
                 if againflag < TRYAGAIN_TIMES:
-                    self.doRequest(_params)
+                    self.doRequest(_params, againflag+1)
         except Exception as e:
             log.error(e)
 
