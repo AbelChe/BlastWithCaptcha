@@ -287,4 +287,16 @@ def run():
 
 
 if __name__ == '__main__':
+    version = open('version', 'r').readline().strip()
+    logo = f''' __________________
+< BlastWithCaptcha >
+      {version} by AbelChe
+ ------------------
+        \   ^__v
+         \  (xx)\___________
+            (!_)\           )\\/\\/\\/\\/\\/\\
+                ||--WWWWWW |
+                ||        ||
+'''
+    print(logo)
     run()
