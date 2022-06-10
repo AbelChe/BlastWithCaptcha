@@ -4,6 +4,7 @@
 
 - 本地ocr [ddddocr](https://github.com/sml2h3/ddddocr)
 - 多线程
+- 支持payload自定义二次处理（插件）2022.06.10更新
 
 ## 使用方法
 
@@ -102,7 +103,7 @@ system:
   SSL_VERIFY: FALSE # requests verify配置，默认即可
 
 ocr:
-  CAPTCHA_REGEX: '.*(\w{4})' # 对ocr识别的结果进行提取
+  CAPTCHA_REGEX: '.*(\w{4})' # 对ocr识别的结果进行提取 例如 .*(\w{4}) .*(\d{4}) (.*?) ......
   CAPTCHA_REGEX_GETVALUE_INDEX: 1 # 搭配CAPTCHA_REGEX使用，获取其正则表达式结果位置，从1开始
 
 target:
@@ -111,9 +112,15 @@ target:
   CAPTCHA_CUSTOM_GETFLAG: 'image"\:"(.*?)"' # 搭配CAPTCHA_DATATYPE值为CUSTOM使用，正则表达式提取数据
   BLAST: blast.txt # 爆破的请求文本文件，默认即可
   CAPTCHA_INDEX: 3 # 验证码的位置，标志位从1开始
-  WORDDICT_LIST: # 字典路径，需要注意顺序与BLAST文件中标记的顺序对应
-    - /Users/AbelChe/SecTools/worddicts/fuzzDicts/userNameDict/top500.txt
-    - /Users/AbelChe/SecTools/worddicts/Blasting_dictionary/top100password.txt
+  WORDDICT_LIST: # 字典设置，需要注意顺序与BLAST文件中标记的顺序对应
+    - 
+      file: /Users/AbelChe/SecTools/worddicts/fuzzDicts/userNameDict/top500.txt # 字典文件位置
+      plugin: # payload插件配置 数组格式 留空即为使用字典原始数据
+      file: /Users/AbelChe/SecTools/worddicts/Blasting_dictionary/top100password.txt # 字典文件位置
+      plugin: # payload插件配置 数组格式
+        - ['base64'] # 格式为[插件名称（与plugins目录下文件名称对应）, 参数1, 参数2, ......] 参数要与插件代码中的args=[]对应, 映射关系为 args=[参数1, 参数2, ......]
+        - ['suffix', '000000']
+        - ['prefix', 'XXXXXX']
   SSL: True # 使用https与否
   CAPTCHA_ERROR_FLAG: # 判断验证码错误的文本标志，正则表达式
     - 验证码错误
@@ -135,6 +142,36 @@ target:
     - 200
     - 302
     - 301
+
+```
+
+关于插件：
+
+类似burp爆破的payload processing，可以自定义，使用方法见上方`target.WORDDICT_LIST`的解释，插件目录为`plugins/`
+
+自定义插件:
+
+如下代码为添加前缀（如果你写过sqlmap tamper插件，那你也应该会写这个）：
+
+```python
+class PayloadProcessor: # 类名称不要更改
+    name = __name__ # 不用修改
+    description = '添加前缀' # 插件描述
+    def __init__(self, payload, args=[]): # 不用修改
+        self.payload = payload # 不用修改
+        self.args = args # 不用修改 从config.yml的target.WORDDICT_LIST[1].get('plugin')[1]传进来的, 故这里args值为['XXXXXX']
+
+    def __str__(self): # 不用修改
+        return self.name # 不用修改
+
+    def genterPatload(self): # 不用修改
+        #>>>>>>>>>>>>自定义代码段>>>>>>>>>>>>>
+        try:
+            # return 返回payload字符串即可
+            return self.args[0] + self.payload
+        except Exception as e:
+            print(e)
+        #<<<<<<<<<<<<自定义代码段<<<<<<<<<<<<<
 ```
 
 
@@ -157,7 +194,7 @@ python BlastWithCaptcha.py
 
 ## TODO
 
-- [ ] 插件（类似burp爆破的payload processing）
+- [x] 插件（类似burp爆破的payload processing）2022.06.10
 - [ ] 带有id的验证码
 - [ ] GUI
 
