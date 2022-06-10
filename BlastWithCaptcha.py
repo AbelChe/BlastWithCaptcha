@@ -1,16 +1,14 @@
-import sys
-print('Please use python version >=3.6') if sys.version_info.major < 3 or sys.version_info.minor < 6 else "PASS"
-
 import base64
 import copy
 import datetime
 import io
 import itertools
+import pkgutil
 import re
+import sys
 from concurrent.futures import ALL_COMPLETED, ThreadPoolExecutor, wait
 
 import ddddocr
-# import imgcat
 import requests
 from PIL import Image
 from requests_toolbelt.multipart.encoder import MultipartEncoder
@@ -26,6 +24,12 @@ from LoadConfig import (BLAST_REQUEST_FILENAME, CAPTCHA_CUSTOM_GETFLAG,
                         TRYAGAIN_TIMES, USERAGENT, WORDDICT_LIST)
 from log import Logging
 from ParseBurpRequest import ParseBurpRequest
+
+print('Please use python version >=3.6') if sys.version_info.major < 3 or sys.version_info.minor < 6 else "PASS"
+
+
+# import imgcat
+
 
 log = Logging.getLogger(__name__)
 
@@ -121,14 +125,12 @@ class CaptchaKiller:
                 'json': None,
                 'data': None,
             }
-            # [
-            #     {'params': {}},
-            #     {'json':   {}},
-            #     {'form':   {}},
-            #     {'multipart': <MultipartEncoder>},
-            #     {'plaintext': ''},
-            #     ......
-            # ]
+            # {'params': {}},
+            # {'json':   {}},
+            # {'form':   {}},
+            # {'multipart': <MultipartEncoder>},
+            # {'plaintext': ''},
+            # ......
             if self.BLAST_ParseBurpRequest.params:
                 # params
                 tmp_params = copy.deepcopy(self.BLAST_ParseBurpRequest.params)
@@ -232,18 +234,40 @@ class CaptchaKiller:
             log.error(e)
 
 
+def loadDict():
+    def payloadPlugin(plugin_name, data: list, args):
+        payload_list = []
+        for i in data:
+            payload_list.append(getattr(__import__(f'plugins.{plugin_name}'), plugin_name).PayloadProcessor(payload=i, args=args).genterPatload())
+        return payload_list
+
+    try:
+        worddict_list = []
+        for i in WORDDICT_LIST:
+            lines = []
+            # i: ['/Users/AbelChe/SecTools/worddicts/Blasting_dictionary/top100password.txt', 'base64']
+            f = open(i.get('file'), 'r')
+            payload_list = [_.rstrip() for _ in f.readlines()]
+            if i.get('plugin'):
+                for p in i.get('plugin'):
+                    payload_list = payloadPlugin(p[0], payload_list, p[1:])
+                worddict_list.append(payload_list)
+            else:
+                worddict_list.append(payload_list)
+        return worddict_list
+    except Exception as e:
+        log.error(e)
+
+
 def run():
     def cal_cartesian_coord(values):
         cart = [d for d in itertools.product(*values)]
         return cart
     # parse captcha requests
+
     cp = ParseBurpRequest(CAPTCHA_REQUEST_FILENAME)
     bp = ParseBurpRequest(BLAST_REQUEST_FILENAME)
-    worddict_list = []
-    for i in WORDDICT_LIST:
-        f = open(i, 'r')
-        worddict_list.append(f.readlines())
-        f.close()
+    worddict_list = loadDict()
     word_list = cal_cartesian_coord(worddict_list)
     total = len(word_list)
     tasklist = []
