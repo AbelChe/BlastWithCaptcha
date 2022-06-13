@@ -1,0 +1,23 @@
+version: 1
+formatters:
+  simple:
+    format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: DEBUG
+    formatter: simple
+    stream: ext://sys.stdout
+  console_err:
+    class: logging.StreamHandler
+    level: ERROR
+    formatter: simple
+    stream: ext://sys.stderr
+loggers:
+  simpleExample:
+    level: DEBUG
+    handlers: [console]
+    propagate: yes
+root:
+  level: CRITICAL
+  handlers: [console_err]

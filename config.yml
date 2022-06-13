@@ -1,7 +1,7 @@
 system:
   PROXY: # 上行代理 例如 127.0.0.1:8080
   REQUEST_RETRIES: 5 # requests 的重试
-  ONCETIME_THREAD_POOL_SIZE: 100 # 并发数
+  ONCETIME_THREAD_POOL_SIZE: 1 # 并发数
   THREAD_POOL_SIZE: 10 # 线程池最大线程数
   TRYAGAIN_TIMES: 3 # 验证码识别失败重试次数
   USERAGENT: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Safari/537.36 #自定义user-agent
@@ -14,21 +14,24 @@ ocr:
   CAPTCHA_REGEX_GETVALUE_INDEX: 1 # 搭配CAPTCHA_REGEX使用，获取其正则表达式结果位置，从1开始
 
 target:
-  CAPTCHA: captcha.txt # 验证码请求文本文件，默认即可
-  CAPTCHA_DATATYPE: RAW # 验证码返回数据类型，可选择 原始图片:RAW base64编码:BASE64 自定义获取数据:CUSTOM
-  CAPTCHA_CUSTOM_GETFLAG: 'image"\:"(.*?)"' # 搭配CAPTCHA_DATATYPE值为CUSTOM使用，正则表达式提取数据
   BLAST: blast.txt # 爆破的请求文本文件，默认即可
+  CAPTCHA: captcha.txt # 验证码请求文本文件，默认即可
+  CAPTCHA_LENGTH: 4 # 验证码位数，用于鉴别ocr识别结果准确与否 例如4 6...... 设置为0的话则为不验证验证码位数
+  CAPTCHA_DATATYPE: CUSTOM # 验证码返回数据类型，可选择 原始图片:RAW base64编码:BASE64 自定义获取数据:CUSTOM
+  CAPTCHA_ID_INDEX: 4 # 验证码id位置，标志位从1开始
+  CAPTCHA_CUSTOM_GETFLAG: 'code"\:"(.*?)"' # 搭配CAPTCHA_DATATYPE值为CUSTOM使用，正则表达式提取数据
+  CAPTCHA_ID_GETFLAG: '"codeId"\:"(.*?)"' # 提取验证码id的正则表达式
   CAPTCHA_INDEX: 3 # 验证码的位置，标志位从1开始
   WORDDICT_LIST: # 字典设置，需要注意顺序与BLAST文件中标记的顺序对应
     - 
       file: /Users/AbelChe/SecTools/worddicts/fuzzDicts/userNameDict/top500.txt # 字典文件位置
       plugin: # payload插件配置 数组格式 留空即为使用字典原始数据
+        - ['upper']
+    - 
       file: /Users/AbelChe/SecTools/worddicts/Blasting_dictionary/top100password.txt # 字典文件位置
       plugin: # payload插件配置 数组格式
-        - ['base64'] # 格式为[插件名称（与plugins目录下文件名称对应）, 参数1, 参数2, ......] 参数要与插件代码中的args=[]对应, 映射关系为 args=[参数1, 参数2, ......]
-        - ['suffix', '000000']
-        - ['prefix', 'XXXXXX']
-  SSL: True # 使用https与否
+        - ['md5'] # 格式为[插件名称（与plugins目录下文件名称对应）, 参数1, 参数2, ......] 参数要与插件代码中的args=[]对应, 映射关系为 args=[参数1, 参数2, ......]
+  SSL: False # 使用https与否
   CAPTCHA_ERROR_FLAG: # 判断验证码错误的文本标志，正则表达式
     - 验证码错误
     - 请输入正确验证码
@@ -38,14 +41,8 @@ target:
     - 502
     - 403
   LOGIN_ERROR_FLAG: # 判断认证失败的标志，正则表达式
-    - 用户名.?密码错误
-    - 登录信息不正确
-    - 验证失败
+    - 账号不存在或密码错误
   LOGIN_ERROR_CODE: # 判断认证失败的状态码
-    -
   LOGIN_SUCCESS_FLAG: # 判断登录成功的文本标志，正则表达式
     - 登录成功
   LOGIN_SUCCESS_CODE: # 判断登录成功的状态码
-    - 200
-    - 302
-    - 301

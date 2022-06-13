@@ -3,7 +3,6 @@ import copy
 import datetime
 import io
 import itertools
-import pkgutil
 import re
 import sys
 from concurrent.futures import ALL_COMPLETED, ThreadPoolExecutor, wait
@@ -15,13 +14,15 @@ from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 from LoadConfig import (BLAST_REQUEST_FILENAME, CAPTCHA_CUSTOM_GETFLAG,
                         CAPTCHA_DATATYPE, CAPTCHA_ERROR_CODE,
-                        CAPTCHA_ERROR_FLAG, CAPTCHA_INDEX, CAPTCHA_REGEX,
-                        CAPTCHA_REGEX_GETVALUE_INDEX, CAPTCHA_REQUEST_FILENAME,
-                        LFLAG, LOGIN_ERROR_CODE, LOGIN_ERROR_FLAG,
-                        LOGIN_SUCCESS_CODE, LOGIN_SUCCESS_FLAG,
-                        ONCETIME_THREAD_POOL_SIZE, PROXY, REQUEST_RETRIES,
-                        RFLAG, SSL, SSL_VERIFY, THREAD_POOL_SIZE,
-                        TRYAGAIN_TIMES, USERAGENT, WORDDICT_LIST)
+                        CAPTCHA_ERROR_FLAG, CAPTCHA_ID_GETFLAG,
+                        CAPTCHA_ID_INDEX, CAPTCHA_INDEX, CAPTCHA_LENGTH,
+                        CAPTCHA_REGEX, CAPTCHA_REGEX_GETVALUE_INDEX,
+                        CAPTCHA_REQUEST_FILENAME, LFLAG, LOGIN_ERROR_CODE,
+                        LOGIN_ERROR_FLAG, LOGIN_SUCCESS_CODE,
+                        LOGIN_SUCCESS_FLAG, ONCETIME_THREAD_POOL_SIZE, PROXY,
+                        REQUEST_RETRIES, RFLAG, SSL, SSL_VERIFY,
+                        THREAD_POOL_SIZE, TRYAGAIN_TIMES, USERAGENT,
+                        WORDDICT_LIST)
 from log import Logging
 from ParseBurpRequest import ParseBurpRequest
 
@@ -92,6 +93,7 @@ class CaptchaKiller:
 
     def _getCaptcha(self):
         try:
+            captcha_id = ''
             img = self.Session.request(
                 method=self.CAPTCHA_ParseBurpRequest.request_method,
                 url=self.CAPTCHA_ParseBurpRequest.getURL(ssl=self.SSL),
@@ -105,6 +107,8 @@ class CaptchaKiller:
                 img_btyes = base64.b64decode(img.text)
             elif CAPTCHA_DATATYPE.lower() == 'custom':
                 img_b64 = re.findall(CAPTCHA_CUSTOM_GETFLAG, img.text)[0]
+                if CAPTCHA_ID_INDEX:
+                    captcha_id = re.findall(CAPTCHA_ID_GETFLAG, img.text)[0]
                 img_btyes = base64.b64decode(img_b64)
             try:
                 image = Image.open(io.BytesIO(img_btyes))
@@ -113,8 +117,9 @@ class CaptchaKiller:
             except Exception as e:
                 log.error(e)
                 return None
-            # imgcat.imgcat(img.content)
-            return self._identifyCaptcha(img.content)
+            # imgcat.imgcat(img_btyes)
+            captcha_result = {'captcha': self._identifyCaptcha(img_btyes), 'captcha_id': captcha_id}
+            return captcha_result
         except Exception as e:
             log.error(e)
 
@@ -201,12 +206,21 @@ class CaptchaKiller:
         """
         try:
             c = self._getCaptcha()
-            if not c:
-                print(f'Captcha error... Try again...')
+            if not c.get('captcha'):
+                log.info(f'Captcha error... Try again...')
                 self.doRequest(params, againflag)
-            _params = params
+                return
+            if CAPTCHA_LENGTH:
+                if len(c.get('captcha')) != CAPTCHA_LENGTH:
+                    log.info(f'OCR result length error "{c.get("captcha")}"... Try again...')
+                    self.doRequest(params, againflag)
+                    return
+            log.debug(c.get('captcha'), len(c.get('captcha')), CAPTCHA_LENGTH, CAPTCHA_LENGTH.__class__, len(c.get('captcha')) != CAPTCHA_LENGTH)
+            _params = copy.deepcopy(params)
             params = list(params)
-            params.insert(CAPTCHA_INDEX, c)
+            params.insert(CAPTCHA_INDEX, c.get('captcha'))
+            if CAPTCHA_ID_INDEX:
+                params.insert(CAPTCHA_ID_INDEX, c.get('captcha_id'))
             params = [i.rstrip() for i in params]
             payload = self.payloadGenerator(params)
             r = self.Session.request(
@@ -230,6 +244,7 @@ class CaptchaKiller:
                 print(f'Try Again {params} captcha: {c}')
                 if againflag < TRYAGAIN_TIMES:
                     self.doRequest(_params, againflag+1)
+                    return
         except Exception as e:
             log.error(e)
 
@@ -275,7 +290,7 @@ def run():
     this_task_num = 0
     for k, v in enumerate(word_list):
         this_task_num += 1
-        if this_task_num % ONCETIME_THREAD_POOL_SIZE != 0:
+        if this_task_num % ONCETIME_THREAD_POOL_SIZE != 0 or ONCETIME_THREAD_POOL_SIZE == 1:
             C = CaptchaKiller(captcha_ParseBurpRequest=cp,
                               blast_ParseBurpRequest=bp)
             tasklist.append(t.submit(C.doRequest, v))
