@@ -1,0 +1,13 @@
+POST /login HTTP/1.1
+Host: example.test.com
+Content-Length: 114
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.63 Safari/537.36
+Content-Type: application/json
+Accept: */*
+Origin: http://example.test.com
+Referer: http://example.test.com/
+Accept-Encoding: gzip, deflate
+Accept-Language: zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6
+Connection: close
+
+{"user":"$<1>$","pwd":"$<2>$","code":"$<3>$","codeId":"$<4>$"}

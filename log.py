@@ -1,10 +1,11 @@
 import logging
+import logging.config
+
+import yaml
 
 Logging = logging
 
-Logging.basicConfig(
-    level=logging.INFO,
-    format='%(levelname)s %(asctime)s [%(filename)s:%(lineno)d] %(message)s',
-    datefmt='%Y.%m.%d. %H:%M:%S'
-)
+with open('log.yml', 'r') as f:
+    dict_conf = yaml.load(f)
 
+Logging.config.dictConfig(dict_conf)
