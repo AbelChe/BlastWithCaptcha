@@ -1,7 +1,7 @@
 import yaml
 
-configfile = open('config.yml', 'r')
-CONFIG = yaml.load(configfile)
+configfile = open('config.yml', 'r' ,encoding='utf-8')
+CONFIG = yaml.safe_load(configfile)
 configfile.close()
 
 PROXY = CONFIG.get('system').get('PROXY')
