@@ -1,5 +1,7 @@
 # BlastWithCaptcha
 
+[![OSCS Status](https://www.oscs1024.com/platform/badge/AbelChe/BlastWithCaptcha.svg?size=large)](https://www.oscs1024.com/project/AbelChe/BlastWithCaptcha?ref=badge_large)
+
 爆破带有验证码认证的请求
 
 - 本地ocr [ddddocr](https://github.com/sml2h3/ddddocr)
